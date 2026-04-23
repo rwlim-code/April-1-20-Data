@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Ads Dashboard — April 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0e14;
+    --surface: #131720;
+    --surface2: #1a2030;
+    --border: #232b3a;
+    --text: #e8ecf4;
+    --text-muted: #6b7a99;
+    --text-dim: #3d4d6b;
+    --accent: #4f8ef7;
+    --accent2: #7c5af7;
+    --green: #36d98d;
+    --red: #f7546a;
+    --amber: #f7b255;
+    --splinter: #4f8ef7;
+    --upstart: #a06af8;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 14px; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 60px;
+  }
+  .logo {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .logo span { color: var(--accent); }
+  .period-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .header-right { margin-left: auto; font-size: 12px; color: var(--text-muted); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    padding: 0 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 14px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab-btn .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--splinter);
+  }
+  .tab-btn:nth-child(2) .dot { background: var(--upstart); }
+  .tab-btn:nth-child(3) .dot { display: none; }
+
+  /* CONTENT */
+  .tab-panel { display: none; padding: 28px 32px; }
+  .tab-panel.active { display: block; }
+
+  /* SECTION */
+  .section { margin-bottom: 32px; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+  }
+  .section-sub { font-size: 12px; color: var(--text-dim); }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+  .kpi-card:hover { border-color: #2e3d58; }
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    padding: 3px 7px;
+    border-radius: 4px;
+  }
+  .kpi-delta.up { background: rgba(54,217,141,0.12); color: var(--green); }
+  .kpi-delta.down { background: rgba(247,84,106,0.12); color: var(--red); }
+  .kpi-delta.neutral { background: rgba(107,122,153,0.12); color: var(--text-muted); }
+  .kpi-compare { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+  /* TACOS SCORECARD */
+  .tacos-scorecard {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr 1fr 1fr 1fr;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid #1e3055;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .tacos-hero {
+    background: linear-gradient(160deg, #0d1f3c 0%, #0e1829 100%);
+    border-right: 1px solid #1e3055;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 200px;
+  }
+  .tacos-hero-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .tacos-hero-value {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    color: var(--text);
+    line-height: 1;
+  }
+  .tacos-hero-delta {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tacos-hero-delta .kpi-delta { font-size: 12px; padding: 4px 9px; }
+  .tacos-hero-sub { font-size: 11px; color: var(--text-dim); }
+  .tacos-stat {
+    padding: 20px 22px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+  }
+  .tacos-stat:last-child { border-right: none; }
+  .tacos-stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim); }
+  .tacos-stat-val { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
+  .tacos-stat-sub { font-size: 11px; color: var(--text-muted); }
+  .tacos-stat-delta { }
+
+  /* WORST CAMPAIGNS TABLE */
+  .worst-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(247,84,106,0.1);
+    color: var(--red);
+    border: 1px solid rgba(247,84,106,0.2);
+    padding: 3px 9px;
+    border-radius: 4px;
+  }
+  .spend-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .spend-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; min-width: 60px; }
+  .spend-bar-fill { height: 4px; background: var(--red); border-radius: 2px; opacity: 0.7; }
+
+  /* CHARTS */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .chart-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .chart-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 18px; }
+  .chart-wrap { position: relative; }
+  .chart-wrap.tall { height: 280px; }
+  .chart-wrap.med { height: 220px; }
+  .chart-wrap.short { height: 180px; }
+
+  /* TWO COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    padding: 11px 16px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 10px 16px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+  td:first-child { text-align: left; color: var(--text); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tfoot tr { background: var(--surface2); border-top: 1px solid var(--border); }
+  tfoot td { font-weight: 600; color: var(--text); }
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+  }
+  .pill.good { background: rgba(54,217,141,0.12); color: var(--green); }
+  .pill.warn { background: rgba(247,178,85,0.12); color: var(--amber); }
+  .pill.bad { background: rgba(247,84,106,0.12); color: var(--red); }
+
+  /* COMPARISON */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .compare-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .compare-brand {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* PIE GRID */
+  .pie-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .tabs, .tab-panel { padding-left: 16px; padding-right: 16px; }
+    .header { padding: 0 16px; }
+    .two-col, .three-col, .compare-grid, .pie-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .tacos-card { flex-wrap: wrap; gap: 16px; }
+    .tacos-breakdown { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo"><span>▲</span> Amazon Ads</div>
+  <div class="period-badge">Apr 1–20, 2026 vs Mar 1–20</div>
+  <div class="header-right">2 Accounts · 72,735 rows</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab(0)"><span class="dot"></span> Splinter Woodworking Co.</button>
+  <button class="tab-btn" onclick="switchTab(1)"><span class="dot"></span> Upstart USA</button>
+  <button class="tab-btn" onclick="switchTab(2)">⊞ Combined Overview</button>
+</div>
+
+<!-- ========================= TAB 1: SPLINTER ========================= -->
+<div class="tab-panel active" id="tab-0">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">KPI Summary</div>
+      <div class="section-sub">April 1–20 vs March 1–20</div>
+    </div>
+    <div class="kpi-grid" id="splinter-kpis"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">TACoS Scorecard</div>
+      <div class="section-sub">Ad Spend ÷ Total Overall Sales · April 1–20 vs March 1–20</div>
+    </div>
+    <div class="tacos-scorecard">
+      <div class="tacos-hero">
+        <div class="tacos-hero-label">TACoS %</div>
+        <div class="tacos-hero-value" id="tacos-value">—</div>
+        <div class="tacos-hero-delta">
+          <span id="tacos-delta"></span>
+          <span class="tacos-hero-sub">vs Mar 1–20</span>
+        </div>
+      </div>
+      <div class="tacos-stat">
+        <div class="tacos-stat-label">Ad Spend</div>
+        <div class="tacos-stat-val" id="tacos-spend">—</div>
+        <div class="tacos-stat-sub" id="tacos-spend-delta">—</div>
+      </div>
+      <div class="tacos-stat">
+        <div class="tacos-stat-label">Total Overall Sales</div>
+        <div class="tacos-stat-val" id="tacos-overall">—</div>
+        <div class="tacos-stat-sub" id="tacos-overall-delta">—</div>
+      </div>
+      <div class="tacos-stat">
+        <div class="tacos-stat-label">Ad Sales</div>
+        <div class="tacos-stat-val" id="tacos-sales">—</div>
+        <div class="tacos-stat-sub" id="tacos-sales-delta">—</div>
+      </div>
+      <div class="tacos-stat">
+        <div class="tacos-stat-label">ACoS %</div>
+        <div class="tacos-stat-val" id="tacos-acos">—</div>
+        <div class="tacos-stat-sub" id="tacos-acos-delta">—</div>
+      </div>
+      <div class="tacos-stat">
+        <div class="tacos-stat-label">Ad Sales % of Total</div>
+        <div class="tacos-stat-val" id="tacos-ad-pct">—</div>
+        <div class="tacos-stat-sub">Ad-attributed revenue</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Daily Performance</div>
+      <div class="section-sub">Spend, Sales & ACoS — April 1–20</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-wrap tall"><canvas id="splinter-daily-chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Portfolio Breakdown</div>
+      <div class="section-sub">Sorted by Ad Spend · April 1–20</div>
+    </div>
+    <div class="table-wrap">
+      <table id="splinter-portfolio-table"></table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Insights</div>
+    </div>
+    <div class="three-col">
+      <div class="chart-card">
+        <div class="chart-title">Top Campaigns by Spend</div>
+        <div class="chart-sub">Top 8 · April 1–20</div>
+        <div class="chart-wrap med"><canvas id="splinter-camp-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Daily CTR Trend</div>
+        <div class="chart-sub">Click-through Rate % over time</div>
+        <div class="chart-wrap med"><canvas id="splinter-ctr-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Daily CVR Trend</div>
+        <div class="chart-sub">Conversion Rate % over time</div>
+        <div class="chart-wrap med"><canvas id="splinter-cvr-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Worst Performing Campaigns</div>
+      <div class="section-sub">Spend with zero orders · April 1–20 · Sorted by Ad Spend</div>
+    </div>
+    <div class="table-wrap">
+      <table id="splinter-worst-table"></table>
+    </div>
+  </div>
+</div>
+<div class="tab-panel" id="tab-1">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">KPI Summary</div>
+      <div class="section-sub">April 1–20 vs March 1–20</div>
+    </div>
+    <div class="kpi-grid" id="upstart-kpis"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Daily Performance</div>
+      <div class="section-sub">Spend, Sales & ACoS — April 1–20</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-wrap tall"><canvas id="upstart-daily-chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Portfolio Breakdown</div>
+      <div class="section-sub">Sorted by Ad Spend · April 1–20</div>
+    </div>
+    <div class="table-wrap">
+      <table id="upstart-portfolio-table"></table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Insights</div>
+    </div>
+    <div class="three-col">
+      <div class="chart-card">
+        <div class="chart-title">Top Campaigns by Spend</div>
+        <div class="chart-sub">Top 8 · April 1–20</div>
+        <div class="chart-wrap med"><canvas id="upstart-camp-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Daily CTR Trend</div>
+        <div class="chart-sub">Click-through Rate % over time</div>
+        <div class="chart-wrap med"><canvas id="upstart-ctr-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Daily CVR Trend</div>
+        <div class="chart-sub">Conversion Rate % over time</div>
+        <div class="chart-wrap med"><canvas id="upstart-cvr-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Worst Performing Campaigns</div>
+      <div class="section-sub">Spend with zero orders · April 1–20 · Sorted by Ad Spend</div>
+    </div>
+    <div class="table-wrap">
+      <table id="upstart-worst-table"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ========================= TAB 3: COMBINED ========================= -->
+<div class="tab-panel" id="tab-2">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Combined KPI Summary</div>
+      <div class="section-sub">Both accounts · April 1–20 vs March 1–20</div>
+    </div>
+    <div class="kpi-grid" id="combined-kpis"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Account Comparison</div>
+      <div class="section-sub">Splinter vs Upstart · April 1–20</div>
+    </div>
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-title">Spend & Sales</div>
+        <div class="chart-sub">Side-by-side bar comparison</div>
+        <div class="chart-wrap tall"><canvas id="compare-bar-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Efficiency Metrics</div>
+        <div class="chart-sub">ACoS, CTR, CVR comparison</div>
+        <div class="chart-wrap tall"><canvas id="compare-eff-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Combined Daily Trend</div>
+      <div class="section-sub">Both accounts · April 1–20</div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-wrap tall"><canvas id="combined-daily-chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Spend & Sales Share</div>
+      <div class="section-sub">Account contribution breakdown</div>
+    </div>
+    <div class="pie-grid">
+      <div class="chart-card">
+        <div class="chart-title">% of Total Spend</div>
+        <div class="chart-wrap med"><canvas id="pie-spend"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">% of Total Sales</div>
+        <div class="chart-wrap med"><canvas id="pie-sales"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA (extracted from Excel)
+// ─────────────────────────────────────────────
+const DATA = {
+  splinter: {
+    apr: { spend:98198.90, sales:325853.30, clicks:84829, impressions:18653308, orders:4345, acos:0.30136, ctr:0.004548, cvr:0.051221, acpc:1.15761 },
+    mar: { spend:72916.00, sales:240862.71, clicks:80696, impressions:17715158, orders:3386, acos:0.30273, ctr:0.004555, cvr:0.041960, acpc:0.90359 },
+    daily: [
+      {date:"04/01",spend:7173.25,sales:27237.87,clicks:6201,impressions:1579915,orders:380},
+      {date:"04/02",spend:6238.02,sales:26871.32,clicks:5404,impressions:1239903,orders:356},
+      {date:"04/03",spend:5166.20,sales:18347.26,clicks:4610,impressions:1019428,orders:262},
+      {date:"04/04",spend:2119.07,sales:5388.84,clicks:2484,impressions:536816,orders:90},
+      {date:"04/05",spend:2486.91,sales:6321.82,clicks:2833,impressions:604306,orders:82},
+      {date:"04/06",spend:5771.28,sales:17407.52,clicks:4928,impressions:1059223,orders:232},
+      {date:"04/07",spend:5113.36,sales:17553.60,clicks:4376,impressions:926282,orders:236},
+      {date:"04/08",spend:4579.85,sales:17995.36,clicks:4026,impressions:895296,orders:219},
+      {date:"04/09",spend:6731.20,sales:20681.84,clicks:5296,impressions:1224286,orders:270},
+      {date:"04/10",spend:5631.46,sales:17338.93,clicks:4524,impressions:1015790,orders:243},
+      {date:"04/11",spend:1995.37,sales:7452.57,clicks:2536,impressions:483465,orders:91},
+      {date:"04/12",spend:2557.64,sales:8210.80,clicks:3068,impressions:587548,orders:91},
+      {date:"04/13",spend:7033.68,sales:20946.97,clicks:5450,impressions:1235454,orders:297},
+      {date:"04/14",spend:5960.84,sales:21319.54,clicks:4601,impressions:1011894,orders:264},
+      {date:"04/15",spend:6012.45,sales:20375.60,clicks:4593,impressions:997016,orders:267},
+      {date:"04/16",spend:6291.78,sales:21742.11,clicks:4830,impressions:1062192,orders:288},
+      {date:"04/17",spend:5374.18,sales:17614.14,clicks:4355,impressions:913614,orders:230},
+      {date:"04/18",spend:3181.28,sales:8677.39,clicks:3074,impressions:590957,orders:121},
+      {date:"04/19",spend:3487.42,sales:8385.55,clicks:3299,impressions:678445,orders:115},
+      {date:"04/20",spend:5293.66,sales:15984.27,clicks:4341,impressions:991478,orders:211}
+    ],
+    portfolios: [
+      {name:"**Catch All Campaigns",spend:9615.99,sales:53715.26,orders:635,clicks:7765},
+      {name:"GIANT-4",spend:8783.58,sales:34179.24,orders:246,clicks:5677},
+      {name:"CONEY-TOSS",spend:8523.69,sales:22467.99,orders:357,clicks:6043},
+      {name:"RING-TOSS",spend:8304.19,sales:28474.36,orders:516,clicks:5855},
+      {name:"K-DARTS",spend:4743.02,sales:17911.31,orders:119,clicks:4154},
+      {name:"GIANT-GOLF-DARTS-XL",spend:4206.76,sales:8279.88,orders:72,clicks:4294},
+      {name:"LY-RECLAIMED",spend:3611.52,sales:16423.42,orders:121,clicks:2020},
+      {name:"DINO-FRENZY",spend:3599.33,sales:10034.14,orders:274,clicks:3616},
+      {name:"GIANT-AXE-DARTS-XL",spend:3409.07,sales:6844.80,orders:53,clicks:3515},
+      {name:"K-DARTS-XL",spend:2771.02,sales:5168.44,orders:44,clicks:6224},
+      {name:"GIANT-GOLF-DARTS",spend:2502.83,sales:7613.28,orders:49,clicks:2354},
+      {name:"WHOMP-BALL",spend:2384.88,sales:5986.40,orders:143,clicks:2346},
+      {name:"MAT-CHK-TIC",spend:2364.64,sales:4132.40,orders:82,clicks:1621},
+      {name:"YRDZ-WOOD-SML",spend:2341.66,sales:7817.67,orders:117,clicks:2009},
+      {name:"GIANT-AXE-DARTS",spend:2292.16,sales:8965.85,orders:61,clicks:1821},
+    ],
+    campaigns: [
+      {name:"[SP-Phrase] - Catch All - Brand - KW:Swooc",spend:4275.66,sales:31296.83},
+      {name:"[SP-PAT] - Catch All - DEF - Swooc",spend:3887.18,sales:14217.31},
+      {name:"SP-Broad Modified - GIANT-4 - Keyword Exp",spend:1206.67,sales:5302.43},
+      {name:"[SP-Auto] - Catch All - Loose match",spend:1185.84,sales:7113.37},
+      {name:"[SB-PC-Broad] - K-DARTS-XL - Brand - Swooc",spend:990.56,sales:1650.88},
+      {name:"GIANT-4_SP_M_Targeted_STR_PP",spend:797.99,sales:3595.39},
+      {name:"CONEY-TOSS_SP_M_Category_STH",spend:626.85,sales:1385.72},
+      {name:"YRDZ-WOOD-SML_SP_M_Category",spend:619.30,sales:2523.50}
+    ],
+    worst: [
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Category - Large Yard/Outdoor/Party Games - Seg 1",spend:135.10,clicks:197,impressions:49148},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Category - Oversized/Giant Yard Games - Seg 1",spend:134.41,clicks:155,impressions:34043},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Targeted - Axe Throwing Games - Seg 2",spend:118.77,clicks:105,impressions:41555},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Targeted - Axe Throwing Games - Seg 1",spend:118.32,clicks:114,impressions:54256},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Targeted - Yard & Lawn Golf Games - Seg 1",spend:106.42,clicks:97,impressions:28191},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Targeted - Dart Boards & Targets - Seg 1",spend:84.30,clicks:76,impressions:35784},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Targeted - Axe Throw Sets & Equipment - Seg 1",spend:80.12,clicks:85,impressions:41000},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Category - Lawn Games - Seg 1",spend:79.30,clicks:81,impressions:38436},
+      {name:"[SBV-PTA-DEF] - GIANT-GOLF-DARTS - All Swooc ASINs",spend:79.27,clicks:74,impressions:4103},
+      {name:"SBV-PDP-Phrase - GIANT-4 - Keyword Exp - 2/18/26 - 1",spend:78.29,clicks:59,impressions:6251},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Targeted - Battle Golf Games - Seg 2",spend:75.29,clicks:71,impressions:39174},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Targeted - Golf Simulators & Practice - Seg 1",spend:74.60,clicks:52,impressions:19450}
+    ]
+  },
+  upstart: {
+    apr: { spend:17104.51, sales:59558.08, clicks:23002, impressions:7416033, orders:906, acos:0.28719, ctr:0.003102, cvr:0.039388, acpc:0.74361 },
+    mar: { spend:2128.97, sales:2092.05, clicks:1883, impressions:451698, orders:47, acos:1.01765, ctr:0.004169, cvr:0.024960, acpc:1.13063 },
+    daily: [
+      {date:"04/01",spend:1150.24,sales:4042.70,clicks:1631,impressions:571312,orders:74},
+      {date:"04/02",spend:984.53,sales:4020.97,clicks:1432,impressions:495738,orders:73},
+      {date:"04/03",spend:925.39,sales:2743.46,clicks:1329,impressions:455616,orders:49},
+      {date:"04/04",spend:270.89,sales:770.55,clicks:688,impressions:205308,orders:20},
+      {date:"04/05",spend:268.93,sales:705.61,clicks:684,impressions:214764,orders:14},
+      {date:"04/06",spend:740.39,sales:2359.18,clicks:1048,impressions:366454,orders:39},
+      {date:"04/07",spend:1233.94,sales:3941.89,clicks:1532,impressions:501045,orders:62},
+      {date:"04/08",spend:693.65,sales:2665.83,clicks:966,impressions:333576,orders:49},
+      {date:"04/09",spend:988.65,sales:4333.37,clicks:1189,impressions:432420,orders:59},
+      {date:"04/10",spend:776.91,sales:3325.17,clicks:988,impressions:335386,orders:43},
+      {date:"04/11",spend:379.98,sales:1787.40,clicks:714,impressions:210955,orders:23},
+      {date:"04/12",spend:556.41,sales:1872.67,clicks:980,impressions:263945,orders:26},
+      {date:"04/13",spend:1043.37,sales:3811.71,clicks:1279,impressions:424262,orders:60},
+      {date:"04/14",spend:879.88,sales:4153.78,clicks:1172,impressions:402710,orders:60},
+      {date:"04/15",spend:767.13,sales:3392.26,clicks:1062,impressions:375651,orders:44},
+      {date:"04/16",spend:1024.32,sales:3834.27,clicks:1262,impressions:397439,orders:56},
+      {date:"04/17",spend:1109.16,sales:3582.81,clicks:1268,impressions:372287,orders:56},
+      {date:"04/18",spend:378.50,sales:1150.84,clicks:671,impressions:180385,orders:15},
+      {date:"04/19",spend:1227.45,sales:2859.66,clicks:1384,impressions:349589,orders:29},
+      {date:"04/20",spend:1704.79,sales:4203.95,clicks:1723,impressions:527191,orders:55}
+    ],
+    portfolios: [
+      {name:"SWOOC - K-DARTS-XL",spend:2933.37,sales:12553.90,orders:121,clicks:7182},
+      {name:"SWOOC - DINO-FRENZY",spend:2201.55,sales:6044.17,orders:161,clicks:3143},
+      {name:"SWOOC - PARTY-TOWER",spend:845.12,sales:1646.98,orders:55,clicks:897},
+      {name:"SWOOC - GIANT-GOLF-DARTS-XL",spend:830.59,sales:1069.90,orders:10,clicks:690},
+      {name:"SWOOC - CONEY-TOSS",spend:786.55,sales:2983.22,orders:48,clicks:924},
+      {name:"SWOOC - GIANT-AXE-DARTS-XL",spend:730.15,sales:1149.81,orders:11,clicks:627},
+      {name:"SWOOC - SAFARI-SLING",spend:597.08,sales:1725.32,orders:47,clicks:549},
+      {name:"SWOOC - TIC-WOOD-BEAN-BAG",spend:577.35,sales:1429.14,orders:28,clicks:747},
+      {name:"SWOOC - GIANT-AXE-DARTS",spend:554.82,sales:3111.63,orders:21,clicks:582},
+      {name:"SWOOC - WHOMP-BALL",spend:489.27,sales:1296.42,orders:26,clicks:549},
+      {name:"SWOOC - TIC-WOOD",spend:476.75,sales:794.80,orders:20,clicks:400},
+      {name:"SWOOC - FLYING-RING-TAC-TOE",spend:461.56,sales:2365.38,orders:26,clicks:529},
+      {name:"SWOOC - CONEY-ISLAND-CHIP",spend:358.72,sales:1124.76,orders:16,clicks:509},
+      {name:"SWOOC - YRDZ-WOOD",spend:353.45,sales:1390.56,orders:24,clicks:341},
+      {name:"SWOOC - GIANT-4-XL",spend:347.68,sales:2732.67,orders:25,clicks:473}
+    ],
+    campaigns: [
+      {name:"[SB-PC] - DINO-FRENZY - Category Indoor & Outdoor",spend:770.01,sales:1991.45},
+      {name:"[SB-PC-Broad] - K-DARTS-XL - Brand - Swooc Seg1",spend:391.98,sales:805.85},
+      {name:"[SB-PC] - DINO-FRENZY - Category Kids Games",spend:342.53,sales:863.76},
+      {name:"[SB-PC-Mixed] - TIC-WOOD-BEAN-BAG Category Family",spend:313.83,sales:497.85},
+      {name:"SB-PC-Broad - CONEY-TOSS - Keyword Exp",spend:310.27,sales:913.72},
+      {name:"[SB-PC-Broad] - FLYING-RING-TAC-TOE - Category",spend:291.74,sales:1415.62},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS - Outdoor Big",spend:290.51,sales:1429.89},
+      {name:"[SB-PC-Broad] - K-DARTS-XL - Targeted - Darts",spend:286.37,sales:1635.60}
+    ],
+    worst: [
+      {name:"[SBV-PDP-Mixed] - GIANT-4 Targeted Keywords 03",spend:77.82,clicks:62,impressions:4671},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Category - Oversized/Giant Yard Games - Seg 1",spend:41.42,clicks:37,impressions:5860},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Category - Large & Jumbo Outdoor Games - Seg 1",spend:40.68,clicks:38,impressions:9122},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Brand - Swooc - Seg 1",spend:40.62,clicks:31,impressions:6694},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Category - Large Yard/Outdoor/Party Games - Seg 1",spend:40.62,clicks:39,impressions:9988},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Category - General Outdoor Adult Games - Seg 2",spend:40.52,clicks:39,impressions:11232},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Targeted - Yard & Lawn Golf Games - Seg 2",spend:40.46,clicks:29,impressions:7457},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Brand - Swooc - Seg 1",spend:40.39,clicks:31,impressions:2656},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Targeted - Axe Throwing Games - Seg 1",spend:40.26,clicks:31,impressions:5075},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Targeted - Yard & Lawn Golf Games - Seg 1",spend:40.19,clicks:32,impressions:9147},
+      {name:"[SB-PC-Broad] - GIANT-AXE-DARTS-XL - Targeted - Ace Throwing Variants - Seg 1",spend:39.86,clicks:33,impressions:6451},
+      {name:"[SB-PC-Broad] - GIANT-GOLF-DARTS-XL - Category - General Outdoor Adult Games - Seg 3",spend:38.84,clicks:38,impressions:11385}
+    ]
+  }
+};
+
+// ─────────────────────────────────────────────
+// OVERALL SALES (Splinter only, from separate rows)
+// ─────────────────────────────────────────────
+const OVERALL_SALES = {
+  apr: { total: 551744.36, daily: [40804.43,39453.54,28291.48,13029.28,10126.83,26880.37,29838.45,30875.10,35741.21,30003.27,14947.41,16746.33,33799.12,33042.90,33170.30,33650.50,32179.00,17066.92,17865.00,34232.92] },
+  mar: { total: 375372.27 }
+};
+
+// ─────────────────────────────────────────────
+// FORMATTERS
+// ─────────────────────────────────────────────
+const fmtCur = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+const fmtCurDec = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtNum = v => v.toLocaleString('en-US');
+const fmtPct = v => (v*100).toFixed(2)+'%';
+const fmtPctOne = v => (v*100).toFixed(1)+'%';
+
+function delta(cur, prev) {
+  if (!prev) return null;
+  return (cur - prev) / prev;
+}
+
+function deltaHTML(d, lowerIsBetter = false) {
+  if (d === null) return '';
+  const pct = (d * 100).toFixed(1);
+  const pos = d >= 0;
+  const good = lowerIsBetter ? !pos : pos;
+  const cls = good ? 'up' : 'down';
+  const arrow = pos ? '↑' : '↓';
+  return `<span class="kpi-delta ${cls}">${arrow} ${Math.abs(pct)}%</span>`;
+}
+
+// ─────────────────────────────────────────────
+// KPI BUILDER
+// ─────────────────────────────────────────────
+function buildKPIs(containerId, apr, mar) {
+  const metrics = [
+    { label:'Ad Spend', val:fmtCur(apr.spend), d:delta(apr.spend, mar.spend), lowerIsBetter:false },
+    { label:'Ad Sales', val:fmtCur(apr.sales), d:delta(apr.sales, mar.sales), lowerIsBetter:false },
+    { label:'ACoS %', val:fmtPct(apr.acos), d:delta(apr.acos, mar.acos), lowerIsBetter:true },
+    { label:'Clicks', val:fmtNum(apr.clicks), d:delta(apr.clicks, mar.clicks), lowerIsBetter:false },
+    { label:'Impressions', val:fmtNum(apr.impressions), d:delta(apr.impressions, mar.impressions), lowerIsBetter:false },
+    { label:'Orders', val:fmtNum(apr.orders), d:delta(apr.orders, mar.orders), lowerIsBetter:false },
+    { label:'CVR %', val:fmtPct(apr.cvr), d:delta(apr.cvr, mar.cvr), lowerIsBetter:false },
+    { label:'CTR %', val:fmtPct(apr.ctr), d:delta(apr.ctr, mar.ctr), lowerIsBetter:false },
+    { label:'aCPC', val:fmtCurDec(apr.acpc), d:delta(apr.acpc, mar.acpc), lowerIsBetter:true }
+  ];
+  const el = document.getElementById(containerId);
+  el.innerHTML = metrics.map(m => `
+    <div class="kpi-card">
+      <div class="kpi-label">${m.label}</div>
+      <div class="kpi-value">${m.val}</div>
+      ${deltaHTML(m.d, m.lowerIsBetter)}
+      <div class="kpi-compare">vs Mar 1–20</div>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+// CHART DEFAULTS
+// ─────────────────────────────────────────────
+Chart.defaults.color = '#6b7a99';
+Chart.defaults.borderColor = '#232b3a';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+Chart.defaults.plugins.legend.labels.padding = 16;
+Chart.defaults.plugins.tooltip.backgroundColor = '#1a2030';
+Chart.defaults.plugins.tooltip.borderColor = '#2e3d58';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.titleColor = '#e8ecf4';
+Chart.defaults.plugins.tooltip.bodyColor = '#9aafc9';
+Chart.defaults.plugins.tooltip.padding = 12;
+Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+// ─────────────────────────────────────────────
+// DAILY COMBO CHART
+// ─────────────────────────────────────────────
+function buildDailyChart(canvasId, daily, color1, color2) {
+  const labels = daily.map(d => d.date);
+  const spend = daily.map(d => d.spend);
+  const sales = daily.map(d => d.sales);
+  const acos = daily.map(d => d.spend / d.sales * 100);
+
+  new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Ad Spend',
+          data: spend,
+          backgroundColor: color1 + '99',
+          borderColor: color1,
+          borderWidth: 1,
+          borderRadius: 3,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Ad Sales',
+          data: sales,
+          backgroundColor: color2 + '55',
+          borderColor: color2,
+          borderWidth: 1,
+          borderRadius: 3,
+          yAxisID: 'y'
+        },
+        {
+          label: 'ACoS %',
+          data: acos,
+          type: 'line',
+          borderColor: '#f7b255',
+          backgroundColor: 'transparent',
+          pointBackgroundColor: '#f7b255',
+          pointRadius: 3,
+          tension: 0.4,
+          yAxisID: 'y2'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { position:'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if (ctx.dataset.yAxisID === 'y2') return ` ACoS: ${v.toFixed(1)}%`;
+              return ` ${ctx.dataset.label}: $${v.toLocaleString('en-US', {maximumFractionDigits:0})}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid:{color:'#1c2438'}, ticks:{font:{size:11}} },
+        y: {
+          position:'left',
+          grid:{color:'#1c2438'},
+          ticks:{
+            callback: v => '$'+v.toLocaleString('en-US',{maximumFractionDigits:0}),
+            font:{size:11}
+          }
+        },
+        y2: {
+          position:'right',
+          grid:{drawOnChartArea:false},
+          ticks:{ callback: v => v.toFixed(0)+'%', font:{size:11} }
+        }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// PORTFOLIO TABLE
+// ─────────────────────────────────────────────
+function buildPortfolioTable(tableId, portfolios) {
+  let totSpend=0, totSales=0, totOrders=0, totClicks=0;
+  portfolios.forEach(p => { totSpend+=p.spend; totSales+=p.sales; totOrders+=p.orders; totClicks+=p.clicks; });
+
+  const acosClass = v => v < 0.25 ? 'good' : v < 0.4 ? 'warn' : 'bad';
+
+  const rows = portfolios.map(p => {
+    const acos = p.spend/p.sales;
+    const cvr = p.orders/p.clicks;
+    return `<tr>
+      <td>${p.name}</td>
+      <td>${fmtCur(p.spend)}</td>
+      <td>${fmtCur(p.sales)}</td>
+      <td><span class="pill ${acosClass(acos)}">${fmtPctOne(acos)}</span></td>
+      <td>${fmtNum(p.orders)}</td>
+      <td>${fmtPctOne(cvr)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById(tableId).innerHTML = `
+    <thead><tr>
+      <th>Portfolio</th>
+      <th>Ad Spend</th>
+      <th>Ad Sales</th>
+      <th>ACoS %</th>
+      <th>Orders</th>
+      <th>CVR %</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr>
+      <td>Totals (Top 15)</td>
+      <td>${fmtCur(totSpend)}</td>
+      <td>${fmtCur(totSales)}</td>
+      <td><span class="pill ${acosClass(totSpend/totSales)}">${fmtPctOne(totSpend/totSales)}</span></td>
+      <td>${fmtNum(totOrders)}</td>
+      <td>${fmtPctOne(totOrders/totClicks)}</td>
+    </tr></tfoot>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// CAMPAIGN HORIZONTAL BAR
+// ─────────────────────────────────────────────
+function buildCampaignChart(canvasId, campaigns, color) {
+  const names = campaigns.slice(0,8).map(c => c.name.length > 30 ? c.name.slice(0,30)+'…' : c.name);
+  const vals = campaigns.slice(0,8).map(c => c.spend);
+
+  new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{
+        data: vals,
+        backgroundColor: color + 'aa',
+        borderColor: color,
+        borderWidth: 1,
+        borderRadius: 3
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display:false },
+        tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.x.toLocaleString('en-US',{maximumFractionDigits:0})}` } }
+      },
+      scales: {
+        x: { grid:{color:'#1c2438'}, ticks:{ callback: v => '$'+v.toLocaleString('en-US',{maximumFractionDigits:0}), font:{size:10} } },
+        y: { grid:{display:false}, ticks:{font:{size:10}} }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// CTR / CVR LINE CHARTS
+// ─────────────────────────────────────────────
+function buildLineChart(canvasId, daily, metric, color, labelStr) {
+  const labels = daily.map(d => d.date);
+  const vals = daily.map(d => {
+    if (metric === 'ctr') return d.clicks/d.impressions*100;
+    if (metric === 'cvr') return d.orders/d.clicks*100;
+    return 0;
+  });
+
+  new Chart(document.getElementById(canvasId), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: labelStr,
+        data: vals,
+        borderColor: color,
+        backgroundColor: color + '20',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+        pointBackgroundColor: color
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display:false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toFixed(2)}%` } }
+      },
+      scales: {
+        x: { grid:{color:'#1c2438'}, ticks:{font:{size:10}} },
+        y: { grid:{color:'#1c2438'}, ticks:{ callback: v => v.toFixed(2)+'%', font:{size:10} } }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// COMBINED KPIs
+// ─────────────────────────────────────────────
+function buildCombinedKPIs() {
+  const sA = DATA.splinter.apr, sM = DATA.splinter.mar;
+  const uA = DATA.upstart.apr, uM = DATA.upstart.mar;
+
+  const apr = {
+    spend: sA.spend + uA.spend,
+    sales: sA.sales + uA.sales,
+    clicks: sA.clicks + uA.clicks,
+    impressions: sA.impressions + uA.impressions,
+    orders: sA.orders + uA.orders
+  };
+  apr.acos = apr.spend/apr.sales;
+
+  const mar = {
+    spend: sM.spend + uM.spend,
+    sales: sM.sales + uM.sales,
+    clicks: sM.clicks + uM.clicks,
+    impressions: sM.impressions + uM.impressions,
+    orders: sM.orders + uM.orders
+  };
+  mar.acos = mar.spend/mar.sales;
+
+  const metrics = [
+    { label:'Total Ad Spend', val:fmtCur(apr.spend), d:delta(apr.spend, mar.spend), lowerIsBetter:false },
+    { label:'Total Ad Sales', val:fmtCur(apr.sales), d:delta(apr.sales, mar.sales), lowerIsBetter:false },
+    { label:'Blended ACoS %', val:fmtPct(apr.acos), d:delta(apr.acos, mar.acos), lowerIsBetter:true },
+    { label:'Total Clicks', val:fmtNum(apr.clicks), d:delta(apr.clicks, mar.clicks), lowerIsBetter:false },
+    { label:'Total Impressions', val:fmtNum(apr.impressions), d:delta(apr.impressions, mar.impressions), lowerIsBetter:false },
+    { label:'Total Orders', val:fmtNum(apr.orders), d:delta(apr.orders, mar.orders), lowerIsBetter:false }
+  ];
+
+  document.getElementById('combined-kpis').innerHTML = metrics.map(m => `
+    <div class="kpi-card">
+      <div class="kpi-label">${m.label}</div>
+      <div class="kpi-value">${m.val}</div>
+      ${deltaHTML(m.d, m.lowerIsBetter)}
+      <div class="kpi-compare">vs Mar 1–20</div>
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────────
+// ACCOUNT COMPARISON BAR
+// ─────────────────────────────────────────────
+function buildCompareCharts() {
+  const sA = DATA.splinter.apr, uA = DATA.upstart.apr;
+
+  new Chart(document.getElementById('compare-bar-chart'), {
+    type: 'bar',
+    data: {
+      labels: ['Ad Spend', 'Ad Sales'],
+      datasets: [
+        { label:'Splinter Woodworking Co.', data:[sA.spend, sA.sales], backgroundColor:'#4f8ef799', borderColor:'#4f8ef7', borderWidth:1, borderRadius:4 },
+        { label:'Upstart USA', data:[uA.spend, uA.sales], backgroundColor:'#a06af899', borderColor:'#a06af8', borderWidth:1, borderRadius:4 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{position:'top'}, tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString('en-US',{maximumFractionDigits:0})}` } } },
+      scales: {
+        x: { grid:{color:'#1c2438'} },
+        y: { grid:{color:'#1c2438'}, ticks:{ callback: v => '$'+v.toLocaleString('en-US',{maximumFractionDigits:0}) } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('compare-eff-chart'), {
+    type: 'bar',
+    data: {
+      labels: ['ACoS %', 'CTR %', 'CVR %'],
+      datasets: [
+        { label:'Splinter Woodworking Co.', data:[sA.acos*100, sA.ctr*100, sA.cvr*100], backgroundColor:'#4f8ef799', borderColor:'#4f8ef7', borderWidth:1, borderRadius:4 },
+        { label:'Upstart USA', data:[uA.acos*100, uA.ctr*100, uA.cvr*100], backgroundColor:'#a06af899', borderColor:'#a06af8', borderWidth:1, borderRadius:4 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{position:'top'}, tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%` } } },
+      scales: {
+        x: { grid:{color:'#1c2438'} },
+        y: { grid:{color:'#1c2438'}, ticks:{ callback: v => v.toFixed(2)+'%' } }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// COMBINED DAILY CHART
+// ─────────────────────────────────────────────
+function buildCombinedDailyChart() {
+  const labels = DATA.splinter.daily.map(d => d.date);
+  const spend = DATA.splinter.daily.map((d,i) => d.spend + DATA.upstart.daily[i].spend);
+  const sales = DATA.splinter.daily.map((d,i) => d.sales + DATA.upstart.daily[i].sales);
+  const acos = spend.map((s,i) => s/sales[i]*100);
+
+  new Chart(document.getElementById('combined-daily-chart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Total Ad Spend', data:spend, backgroundColor:'#4f8ef799', borderColor:'#4f8ef7', borderWidth:1, borderRadius:3, yAxisID:'y' },
+        { label:'Total Ad Sales', data:sales, backgroundColor:'#36d98d55', borderColor:'#36d98d', borderWidth:1, borderRadius:3, yAxisID:'y' },
+        { label:'Blended ACoS %', data:acos, type:'line', borderColor:'#f7b255', backgroundColor:'transparent', pointBackgroundColor:'#f7b255', pointRadius:3, tension:0.4, yAxisID:'y2' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{position:'top'},
+        tooltip:{ callbacks:{ label: ctx => ctx.dataset.yAxisID==='y2' ? ` ACoS: ${ctx.parsed.y.toFixed(1)}%` : ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString('en-US',{maximumFractionDigits:0})}` } }
+      },
+      scales: {
+        x:{grid:{color:'#1c2438'}},
+        y:{position:'left', grid:{color:'#1c2438'}, ticks:{ callback: v => '$'+v.toLocaleString('en-US',{maximumFractionDigits:0}) }},
+        y2:{position:'right', grid:{drawOnChartArea:false}, ticks:{ callback: v => v.toFixed(0)+'%' }}
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// PIE CHARTS
+// ─────────────────────────────────────────────
+function buildPieCharts() {
+  const sA = DATA.splinter.apr, uA = DATA.upstart.apr;
+  const pieOpts = (labels, data) => ({
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: ['#4f8ef7cc', '#a06af8cc'],
+        borderColor: ['#4f8ef7', '#a06af8'],
+        borderWidth: 2,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      cutout: '60%',
+      plugins: {
+        legend:{ position:'bottom' },
+        tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}%` } }
+      }
+    }
+  });
+
+  const totSpend = sA.spend + uA.spend;
+  const totSales = sA.sales + uA.sales;
+  new Chart(document.getElementById('pie-spend'), pieOpts(['Splinter','Upstart USA'], [sA.spend/totSpend*100, uA.spend/totSpend*100]));
+  new Chart(document.getElementById('pie-sales'), pieOpts(['Splinter','Upstart USA'], [sA.sales/totSales*100, uA.sales/totSales*100]));
+}
+
+// ─────────────────────────────────────────────
+// TACOS SCORECARD
+// ─────────────────────────────────────────────
+function buildTacos() {
+  const s = DATA.splinter.apr;
+  const sm = DATA.splinter.mar;
+  const aprOverall = OVERALL_SALES.apr.total;
+  const marOverall = OVERALL_SALES.mar.total;
+
+  const tacosApr = s.spend / aprOverall;
+  const tacosMar = sm.spend / marOverall;
+  const tacosDelta = delta(tacosApr, tacosMar);
+
+  document.getElementById('tacos-value').textContent = fmtPctOne(tacosApr);
+  document.getElementById('tacos-delta').innerHTML = deltaHTML(tacosDelta, true);
+
+  // Spend
+  document.getElementById('tacos-spend').textContent = fmtCur(s.spend);
+  const spendDelta = delta(s.spend, sm.spend);
+  document.getElementById('tacos-spend-delta').innerHTML = deltaHTML(spendDelta, false) + ' <span style="color:var(--text-dim)">vs Mar</span>';
+
+  // Overall Sales
+  document.getElementById('tacos-overall').textContent = fmtCur(aprOverall);
+  const overallDelta = delta(aprOverall, marOverall);
+  document.getElementById('tacos-overall-delta').innerHTML = deltaHTML(overallDelta, false) + ' <span style="color:var(--text-dim)">vs Mar</span>';
+
+  // Ad Sales
+  document.getElementById('tacos-sales').textContent = fmtCur(s.sales);
+  const salesDelta = delta(s.sales, sm.sales);
+  document.getElementById('tacos-sales-delta').innerHTML = deltaHTML(salesDelta, false) + ' <span style="color:var(--text-dim)">vs Mar</span>';
+
+  // ACoS
+  document.getElementById('tacos-acos').textContent = fmtPctOne(s.acos);
+  const acosDelta = delta(s.acos, sm.acos);
+  document.getElementById('tacos-acos-delta').innerHTML = deltaHTML(acosDelta, true) + ' <span style="color:var(--text-dim)">vs Mar</span>';
+
+  // Ad Sales % of total
+  const adPct = s.sales / aprOverall;
+  document.getElementById('tacos-ad-pct').textContent = fmtPctOne(adPct);
+}
+
+// ─────────────────────────────────────────────
+// WORST CAMPAIGNS TABLE (0 orders, sorted by spend)
+// ─────────────────────────────────────────────
+function buildWorstTable(tableId, worst) {
+  const maxSpend = worst[0].spend;
+  const totalWastedSpend = worst.reduce((s, c) => s + c.spend, 0);
+
+  const rows = worst.map(c => {
+    const ctr = c.clicks / c.impressions * 100;
+    const barWidth = (c.spend / maxSpend * 100).toFixed(1);
+    return `<tr>
+      <td style="max-width:320px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.name}">${c.name}</td>
+      <td>
+        <div class="spend-bar-wrap">
+          <span>${fmtCurDec(c.spend)}</span>
+          <div class="spend-bar-bg"><div class="spend-bar-fill" style="width:${barWidth}%"></div></div>
+        </div>
+      </td>
+      <td>${fmtNum(c.clicks)}</td>
+      <td>${fmtNum(c.impressions)}</td>
+      <td>${ctr.toFixed(2)}%</td>
+      <td><span class="worst-badge">0 orders</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById(tableId).innerHTML = `
+    <thead><tr>
+      <th>Campaign Name</th>
+      <th>Wasted Spend</th>
+      <th>Clicks</th>
+      <th>Impressions</th>
+      <th>CTR %</th>
+      <th>Orders</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr>
+      <td>Total Wasted (Top 12)</td>
+      <td style="color:var(--red); font-weight:700;">${fmtCurDec(totalWastedSpend)}</td>
+      <td colspan="4" style="color:var(--text-dim); text-align:left; padding-left:16px;">Showing top ${worst.length} campaigns by spend with 0 orders</td>
+    </tr></tfoot>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────
+function switchTab(idx) {
+  document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // SPLINTER
+  buildKPIs('splinter-kpis', DATA.splinter.apr, DATA.splinter.mar);
+  buildTacos();
+  buildDailyChart('splinter-daily-chart', DATA.splinter.daily, '#4f8ef7', '#36d98d');
+  buildPortfolioTable('splinter-portfolio-table', DATA.splinter.portfolios);
+  buildCampaignChart('splinter-camp-chart', DATA.splinter.campaigns, '#4f8ef7');
+  buildLineChart('splinter-ctr-chart', DATA.splinter.daily, 'ctr', '#f7b255', 'CTR %');
+  buildLineChart('splinter-cvr-chart', DATA.splinter.daily, 'cvr', '#36d98d', 'CVR %');
+  buildWorstTable('splinter-worst-table', DATA.splinter.worst);
+
+  // UPSTART
+  buildKPIs('upstart-kpis', DATA.upstart.apr, DATA.upstart.mar);
+  buildDailyChart('upstart-daily-chart', DATA.upstart.daily, '#a06af8', '#f7546a');
+  buildPortfolioTable('upstart-portfolio-table', DATA.upstart.portfolios);
+  buildCampaignChart('upstart-camp-chart', DATA.upstart.campaigns, '#a06af8');
+  buildLineChart('upstart-ctr-chart', DATA.upstart.daily, 'ctr', '#f7b255', 'CTR %');
+  buildLineChart('upstart-cvr-chart', DATA.upstart.daily, 'cvr', '#f7546a', 'CVR %');
+  buildWorstTable('upstart-worst-table', DATA.upstart.worst);
+
+  // COMBINED
+  buildCombinedKPIs();
+  buildCompareCharts();
+  buildCombinedDailyChart();
+  buildPieCharts();
+});
+</script>
+</body>
+</html>
